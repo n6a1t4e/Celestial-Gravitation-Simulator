@@ -182,7 +182,7 @@ function getVectorAngle(pos1,pos2){
 	return vec;
 }
 
-function getCirOrbitalVelovity(M,r){
+function getCirOrbitalVelocity(M,r){
 	//Input r in Meters
 	var vel = Math.sqrt((G*M)/r);
 	//Output in m/s
@@ -246,7 +246,7 @@ function orbitalPre(num,r,m1=sunMass,m2=earthMass,dV=1){
 		var M = m1 + m2;
 		var d = distance(pos,star.pos);
 		
-		oV = getCirOrbitalVelovity(M,d);
+		oV = getCirOrbitalVelocity(M,d);
 		//console.log(oV);
 		planet.v = p5.Vector.fromAngle(angle).mult(oV).mult(dV);
 		planets.push(planet);
@@ -284,7 +284,7 @@ function randomPre(num){
 		var pos = p5.Vector.fromAngle(random(TWO_PI)).mult(random(AU/2,(AU*width/2)/100)).add(center);
 
 		mass = random(earthMass*1e-21,2*earthMass);
-		var v = getCirOrbitalVelovity(star.mass,200*scl);
+		var v = getCirOrbitalVelocity(star.mass,200*scl);
 
 		r = random(3e6,12e6);
 		var planet = new Planet(pos,mass,r);
