@@ -1,6 +1,6 @@
 //Author: R. Nathan Lewis
 //Date:   April 16, 2019
-//Version 1.1
+//Version 1.2
 
 var cnv;
 var planets = [];
@@ -25,6 +25,7 @@ const sunMass = 1.989e+30;
 var speed;
 var speedTxt;
 var sclSlider;
+const maxScl = AU/1e2;
 
 var interfaceButton;
 var showInterface = 1;
@@ -55,6 +56,9 @@ function Interface(){
 	
 	//time
 	text("Seconds: " + round(t*100)/100,4,32);
+	
+	//Number Planets
+	text("Planets/Stars: " + planets.length,4,48);
 	
 	
 	textSize(12);
@@ -103,7 +107,11 @@ class Planet {
 				acc.add(angle.mult(a));
 				//Roche Limit Calculation
 				if (separation < this.rocheLimit(planets[i].density)){
-					stroke(255,0,0);
+					//stroke(255,0,0);
+					if (planets[i].mass > earthMass/2){
+						planets[i].rocheBreak();
+					}
+					
 				}
 			}
 		}
@@ -112,20 +120,44 @@ class Planet {
 	
 	rocheLimit(density) {
 		//meters
-		return this.radius * Math.pow(2*(this.density/density),1/3) /1000;
+		return this.radius * Math.pow(2*(this.density/density),1/3);
+	}
+	
+	rocheBreak(){
+		var num = Math.floor(random(1,3));
+		var planetMass = this.mass;
+		for (var i=0;i<num;i++){
+			var mass = random(planetMass);
+			planetMass -= mass;
+			var vol = (mass/1000)/this.density;
+			var r = Math.pow((3*vol/4)/PI,(1/3))/100;
+			(4/3) * PI * Math.pow(this.radius * 100, 3);
+			var planet = new Planet(this.pos.copy(),mass,r);
+			planet.v = this.v;
+			planets.push(planet);
+		}
+		this.mass = planetMass;
+		vol = (planetMass/1000)/this.density;
+		r = Math.pow((3*vol/4)/PI,(1/3))/100;
+		this.r = r;
 	}
 	
 	
 	updatePlanet(){
+		stroke(255);
+	
 		//Update Pos
 		this.addTotalAcc();
 		this.v.add(this.a);
 		this.pos.add(this.v);
 		
+		if (Math.abs(this.pos.x)>maxScl*width/2 || Math.abs(this.pos.y)>maxScl*height/2){
+			planets.splice(planets.indexOf(this),1);
+		}
+		
 
 		//Draw Planet
 		strokeWeight(this.radius/scl);
-		stroke(255);
 		var pos = this.pos.copy().div(scl).add(getCenter());
 		point(pos.x,pos.y);
 	}
@@ -262,8 +294,8 @@ function randomPre(num){
 	sclSlider.value(AU/(width/10));
 	scl = sclSlider.value();
 
-    //Set Speed
-	setSpeed(day*3);
+	//Set Speed
+	setSpeed(day/3);
 	t = 0;
 	
 	//Reset Planets
@@ -279,9 +311,9 @@ function randomPre(num){
 	var star = new Planet(center.copy(),mass,r);
 	planets.push(star);
 
-    //Create Smaller Bodies
+	//Create Smaller Bodies
 	for (var i=0; i<num; i++){
-		var pos = p5.Vector.fromAngle(random(TWO_PI)).mult(random(AU/2,(AU*width/2)/100)).add(center);
+		var pos = p5.Vector.fromAngle(random(TWO_PI)).mult(random(AU/2,(3/4)*maxScl*width/2)).add(center);
 
 		mass = random(earthMass*1e-21,2*earthMass);
 		var v = getCirOrbitalVelocity(star.mass,200*scl);
@@ -362,8 +394,8 @@ function setSpeedText(){
 
 
 function mouseWheel(event){
-    var initVal = sclSlider.value()
-    sclSlider.value(initVal+event.delta*1e5);
+	var initVal = sclSlider.value()
+	sclSlider.value(initVal+event.delta*1e5);
 }
 
 
@@ -378,7 +410,7 @@ function setup(){
 	
 	
 	//Sliders
-	sclSlider = createSlider(1,AU/1e2);
+	sclSlider = createSlider(1,maxScl);
 	sclSlider.parent("sliders");
 	
 	
